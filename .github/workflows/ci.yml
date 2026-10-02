@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  typst:
+    name: Typst (CLI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: 0.15.1
+      - uses: extractions/setup-just@v4
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Templates compile on their own
+        run: |
+          mkdir -p build/ci
+          for f in templates/*.typ inserts/*.typ calibration.typ printer-test.typ color-test.typ; do
+            echo "::group::$f"
+            typst compile --root . --font-path fonts --ignore-system-fonts "$f" "build/ci/$(basename "$f" .typ).pdf"
+            echo "::endgroup::"
+          done
+      - name: Insert pipeline (imposition + verification)
+        run: |
+          just setup
+          for insert in example-dots example-planner pocket-dots; do
+            just all "$insert"
+          done
+
+  web:
+    name: Website (lint, types, tests, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - name: Unit and component tests
+        run: npx vitest run --project unit --coverage
+      - name: Typst compilation tests (WASM)
+        run: npx vitest run --project typst
+      - run: npm run build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: web/coverage
+          retention-days: 7
+
+  e2e:
+    name: E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: chromium
+            browser: chromium
+          - project: firefox
+            browser: firefox
+          - project: webkit
+            browser: webkit
+          - project: mobile
+            browser: chromium webkit
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: E2E tests
+        run: |
+          if [ "${{ matrix.project }}" = mobile ]; then
+            npx playwright test --project=mobile-chrome --project=mobile-safari
+          else
+            npx playwright test --project=${{ matrix.project }}
+          fi
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: |
+            web/playwright-report
+            web/test-results
+          retention-days: 14

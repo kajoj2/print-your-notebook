@@ -1,0 +1,27 @@
+{
+  "_comment": "Palette of pattern and print colours. Shared by the website (web/) and the test sheet (color-test.typ). Colours chosen for a laser: dark and saturated, because light thin lines vanish in the raster. Verified by printing the test sheet on a CLX-3300 (2026-09-30): all colours OK, dots from 0.5 mm. Labels are fallbacks; the website shows names from web/src/i18n.",
+  "colors": [
+    { "id": "black", "label": "Black", "color": "#000000" },
+    { "id": "graphite", "label": "Graphite", "color": "#666666" },
+    { "id": "grey", "label": "Light grey", "color": "#9a9a9a" },
+    { "id": "blue", "label": "Blue", "color": "#1f6fb2" },
+    { "id": "cyan", "label": "Cyan", "color": "#0093c9" },
+    { "id": "navy", "label": "Navy", "color": "#2a3b8f" },
+    { "id": "violet", "label": "Violet", "color": "#6a4c9c" },
+    { "id": "red", "label": "Red", "color": "#d2232a" },
+    { "id": "magenta", "label": "Magenta", "color": "#c1177c" },
+    { "id": "orange", "label": "Orange", "color": "#e36f1e" },
+    { "id": "green", "label": "Green", "color": "#1e8a4c" },
+    { "id": "sage", "label": "Sage", "color": "#6f9a7e" },
+    { "id": "sepia", "label": "Sepia", "color": "#9a6b45" },
+    { "id": "brown", "label": "Brown", "color": "#6b4226" }
+  ],
+  "themes": [
+    { "id": "graphite", "label": "Graphite", "grid": "#666666", "accent": "#000000", "ink": "#000000" },
+    { "id": "seyes", "label": "School Seyès", "grid": "#6a4c9c", "accent": "#d2232a", "ink": "#000000" },
+    { "id": "blue-red", "label": "Blue + red", "grid": "#1f6fb2", "accent": "#d2232a", "ink": "#2a3b8f" },
+    { "id": "graph", "label": "Graph paper", "grid": "#e36f1e", "accent": "#d2232a", "ink": "#000000" },
+    { "id": "sepia", "label": "Sepia", "grid": "#9a6b45", "accent": "#6b4226", "ink": "#6b4226" },
+    { "id": "sage", "label": "Sage", "grid": "#6f9a7e", "accent": "#1e8a4c", "ink": "#000000" }
+  ]
+}

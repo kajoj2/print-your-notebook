@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+/* Notebook fonts: the same files Typst typesets with (font names in the font picker, logo). */
+@font-face {
+  font-family: 'Special Elite';
+  src: url('../../fonts/special-elite/SpecialElite-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('../../fonts/courier-prime/CourierPrime-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Cutive Mono';
+  src: url('../../fonts/cutive-mono/CutiveMono-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Libertinus Serif';
+  src: url('./assets/fonts/LibertinusSerif-Regular.otf') format('opentype');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'New Computer Modern';
+  src: url('./assets/fonts/NewCM10-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-type: 'Special Elite', 'Courier New', monospace;
+
+  /* desk: green felt mat under the notebook */
+  --color-desk: #2d3a33;
+  --color-desk-deep: #1f2924;
+  /* panel: cool grey paper */
+  --color-panel: #eef0ec;
+  --color-panel-raised: #f8f9f6;
+  --color-rule: #d3d8d1;
+  /* blue-black ink, with fountain-pen blue ink as the accent */
+  --color-ink: #1d2230;
+  --color-ink-soft: #565d63;
+  --color-accent: #2446a8;
+  --color-accent-soft: #dfe5f5;
+  --color-danger: #a4262c;
+
+  --ease-page: cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-panel);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* desk felt: subtle fibres instead of a flat colour */
+.desk-felt {
+  background-color: var(--color-desk);
+  background-image:
+    radial-gradient(ellipse at 50% 40%, rgb(255 255 255 / 0.06), transparent 65%),
+    repeating-linear-gradient(35deg, rgb(0 0 0 / 0.025) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(-55deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 4px);
+}
+
+/* cover leather: colour from the settings in --leather */
+.leather {
+  background-color: var(--leather);
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgb(255 255 255 / 0.14), transparent 60%),
+    radial-gradient(ellipse at 80% 90%, rgb(0 0 0 / 0.28), transparent 55%),
+    repeating-radial-gradient(circle at 20% 30%, rgb(0 0 0 / 0.035) 0 1px, transparent 1px 3px);
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.25),
+    inset 0 0 18px rgb(0 0 0 / 0.35);
+}
+
+.stitch {
+  border: 1.5px dashed rgb(255 255 255 / 0.28);
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
