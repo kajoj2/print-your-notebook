@@ -28,11 +28,20 @@ function fail(id: number, e: unknown) {
   post({ type: 'error', id, message: String(e), fatal: crashed || undefined });
 }
 
-// Downloads a file with progress (the compiler is tens of MB).
+// Downloads a file with progress (the compiler is tens of MB). The production build ships
+// the compiler gzipped (see vite.config.ts), which is decompressed on the fly; progress counts
+// decompressed bytes. The bytes decide, not the .gz name: a server may send it with
+// Content-Encoding: gzip (e.g. vite preview) and the browser has already decompressed it.
 async function fetchWithProgress(url: string, onProgress: (loaded: number) => void) {
   const res = await fetch(url);
   if (!res.ok || !res.body) throw new Error(`Failed to download ${url} (${res.status})`);
-  const reader = res.body.getReader();
+  const [probe, data] = res.body.tee();
+  const probeReader = probe.getReader();
+  const { value: head } = await probeReader.read();
+  void probeReader.cancel();
+  const gzipped = head?.[0] === 0x1f && head[1] === 0x8b;
+  const body = gzipped ? data.pipeThrough(new DecompressionStream('gzip')) : data;
+  const reader = body.getReader();
   const chunks: Uint8Array[] = [];
   let loaded = 0;
   for (;;) {

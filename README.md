@@ -406,8 +406,11 @@ languages in `lib/i18n.typ`, and the call in `typst.ts` (`IMPORTS` and `sectionB
 
 CI (`.github/workflows/ci.yml`) compiles the templates with Typst 0.15.1, runs `just all`
 for the example inserts, lint, types, tests and E2E in every browser.
-`deploy.yml` publishes the website to GitHub Pages. For now it only runs manually
-(Actions → Deploy site → Run workflow) and needs Pages → Source: GitHub Actions enabled.
+`deploy.yml` publishes the website to Cloudflare Pages (project `print-your-notebook`):
+a push to `main` deploys https://notes.kajoj.com, a pull request gets a preview deployment
+linked in a PR comment. It needs the `CLOUDFLARE_API_TOKEN` (Account → Cloudflare Pages → Edit)
+and `CLOUDFLARE_ACCOUNT_ID` repository secrets. The build ships the ~30 MB compiler WASM
+gzipped, because Pages serves files up to 25 MiB (see `vite.config.ts`).
 
 ## Adding a new page type
 

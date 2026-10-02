@@ -1,35 +1,40 @@
 name: Deploy site
 
-# Publishes the generator to GitHub Pages (Settings → Pages → Source: GitHub Actions).
-# Manual only for now: the site isn't published and Pages is disabled.
-# To deploy automatically on changes to main, restore the `push` block below.
+# Publishes the generator to Cloudflare Pages (project print-your-notebook, https://notes.kajoj.com).
+# main → production; a pull request → a preview deployment, linked in a PR comment.
+# Secrets: CLOUDFLARE_API_TOKEN (Account → Cloudflare Pages → Edit) and CLOUDFLARE_ACCOUNT_ID.
 on:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - web/**
-  #     - lib/**
-  #     - templates/**
-  #     - fonts/**
-  #     - assets/**
-  #     - .github/workflows/deploy.yml
+  push:
+    branches: [main]
+    paths: &site-paths
+      - web/**
+      - lib/**
+      - templates/**
+      - fonts/**
+      - assets/**
+      - config/**
+      - .github/workflows/deploy.yml
+  pull_request:
+    paths: *site-paths
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  deployments: write
+  pull-requests: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
+  deploy:
+    # pull requests from forks don't get the secrets
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -38,18 +43,23 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+        working-directory: web
       - run: npm run build
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
+        working-directory: web
+      - id: deploy
+        uses: cloudflare/wrangler-action@v4
         with:
-          path: web/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: >-
+            pages deploy web/dist --project-name=print-your-notebook
+            --branch=${{ github.head_ref || github.ref_name }}
+            --commit-hash=${{ github.event.pull_request.head.sha || github.sha }}
+      - if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: preview
+          message: |
+            **Preview:** ${{ steps.deploy.outputs.pages-deployment-alias-url || steps.deploy.outputs.deployment-url }}
+            (deployment for ${{ github.event.pull_request.head.sha }}: ${{ steps.deploy.outputs.deployment-url }})
