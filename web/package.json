@@ -22,7 +22,7 @@
     "@myriaddreamin/typst-ts-web-compiler": "0.8.0-rc3",
     "@myriaddreamin/typst.ts": "0.8.0-rc3",
     "lucide-react": "^1.48.0",
-    "motion": "^13.4.6",
+    "motion": "^14.0.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
     "radix-ui": "^1.6.7",
